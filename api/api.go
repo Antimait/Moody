@@ -11,33 +11,33 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func HttpListenAndServer(port string) *http.Server {
+func HttpListenAndServer(port string, panelPath string) *http.Server {
 	router := mux.NewRouter()
 
+	// Panel
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(panelPath)))
+
 	// Situation
-	router.HandleFunc("/situation", SituationsMux)
-	router.HandleFunc("/situation/{id}", SituationMux)
+	apiRouter := router.PathPrefix("/api").Subrouter()
+	apiRouter.HandleFunc("/situation", SituationsMux)
+	apiRouter.HandleFunc("/situation/{id}", SituationMux)
 
 	// Service
-	router.HandleFunc("/service", ServicesMux)
-	router.HandleFunc("/service/{id}", ServiceMux)
-
-	router.HandleFunc("/dataset", forwardToApiGW)
-	subrouter := router.PathPrefix("/dataset").Subrouter()
-	subrouter.HandleFunc("/", forwardToApiGW)
-	subrouter.HandleFunc("/{[0-9]*}", forwardToApiGW)
+	apiRouter.HandleFunc("/service", ServicesMux)
+	apiRouter.HandleFunc("/service/{id}", ServiceMux)
 
 	// Internal Gateway endpoints
-	router.HandleFunc("/neural_state", neuralStateMux)
-	router.HandleFunc("/actuator_mode", actuatorModeMux)
-	router.HandleFunc("/actuators", actuatorMux)
-	router.HandleFunc("/sensor_service", serviceMux)
-	router.HandleFunc("/data_table", tableMux)
-	router.HandleFunc("/current_situation", situationMux)
-	router.HandleFunc("/service_ws", communication.ServeServiceWS)
-	router.HandleFunc("/actuator_ws", communication.ServeActuatorWS)
-	router.Use(allowAllCorsMiddleware)
-	router.Use(logRequestResponseMiddleWare)
+	apiRouter.HandleFunc("/neural_state", neuralStateMux)
+	apiRouter.HandleFunc("/actuator_mode", actuatorModeMux)
+	apiRouter.HandleFunc("/actuators", actuatorMux)
+	apiRouter.HandleFunc("/sensor_service", serviceMux)
+	apiRouter.HandleFunc("/data_table", tableMux)
+	apiRouter.HandleFunc("/current_situation", situationMux)
+	apiRouter.HandleFunc("/service_ws", communication.ServeServiceWS)
+	apiRouter.HandleFunc("/actuator_ws", communication.ServeActuatorWS)
+
+	apiRouter.Use(allowAllCorsMiddleware)
+	apiRouter.Use(logRequestResponseMiddleWare)
 	server := &http.Server{Addr: port, Handler: router}
 	return server
 }

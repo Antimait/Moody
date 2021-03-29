@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"moody/communication"
@@ -10,38 +9,6 @@ import (
 	"net/url"
 	"strconv"
 )
-
-// Forwards incoming requests that need to query an external service to the API GW
-func forwardToApiGW(w http.ResponseWriter, r *http.Request) {
-	gwAddr := communication.ApiGatewayAddress
-	gwAddr.Path = r.URL.Path
-	w.Header().Set("Content-Type", "application/json")
-
-	newReq, err := http.NewRequest(r.Method, gwAddr.String(), r.Body)
-	if err != nil {
-		log.Println(err)
-		models.RespondWithError(w, http.StatusInternalServerError, "server error")
-		return
-	}
-	newReq.Header.Set("Host", r.Host)
-	newReq.Header.Set("X-Forwarded-For", r.RemoteAddr)
-	for header, headerValues := range r.Header {
-		for _, headerValue := range headerValues {
-			newReq.Header.Add(header, headerValue)
-		}
-	}
-	client := &http.Client{}
-	resp, err := client.Do(newReq)
-	if err != nil {
-		log.Println(err)
-		models.RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	buf := new(bytes.Buffer)
-	_, _ = buf.ReadFrom(resp.Body)
-	w.WriteHeader(resp.StatusCode)
-	_, _ = w.Write(buf.Bytes())
-}
 
 // [GET] /neural_state
 // returns a view of the dataset state of the app, containing information about

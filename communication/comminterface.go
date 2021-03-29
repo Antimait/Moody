@@ -1,10 +1,8 @@
 package communication
 
 import (
-	"errors"
 	"log"
 	"moody/models"
-	"net/url"
 )
 
 const (
@@ -28,8 +26,6 @@ var (
 		"mqtt": &MQTTClient{},
 	}
 
-	ApiGatewayAddress url.URL
-
 	DataTable      *models.DataTable
 	ActiveServices *models.SynchronizedStringSet
 	NeuralState    models.NeuralState
@@ -51,20 +47,6 @@ func StartCommInterface(conf map[string]interface{}) error {
 		Mode:    models.Stopped,
 		Dataset: "",
 	}
-
-	// Check that the right type of data was passed through the conf file
-	var ok bool
-	gwAddr, ok := conf["apiGateway"].(string)
-	if !ok {
-		return errors.New("wrong syntax for the apiGateway field in conf.json")
-	}
-
-	var err error
-	apiGWAddr, err := url.Parse(gwAddr)
-	if err != nil {
-		return err
-	}
-	ApiGatewayAddress = *apiGWAddr
 
 	// Start each communication interface
 	for name, commIfc := range clientMapping {

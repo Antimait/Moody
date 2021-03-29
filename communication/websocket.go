@@ -52,7 +52,7 @@ func ServeActuatorWS(w http.ResponseWriter, r *http.Request) {
 	actuatorConnection = conn
 }
 
-// Marshals and forwards data referring a service event
+// Marshals and forwards data related to a service event
 func ForwardServiceData(evt ServiceDataEvent) {
 	jsonData, err := json.Marshal(&evt)
 	if err != nil {
@@ -62,7 +62,6 @@ func ForwardServiceData(evt ServiceDataEvent) {
 	if err := serviceConnection.WriteMessage(websocket.TextMessage, jsonData); err != nil {
 		log.Println(err)
 	}
-
 }
 
 // Gets a mapping of an actuator server that just connected to the gateway and forwards
