@@ -61,7 +61,7 @@ func main() {
 	}
 
 	// TODO set static folder path
-	server := api.HttpListenAndServer(conf.ServerPort)
+	server := api.HttpListenAndServer(conf.ServerPort, "")
 	go func() { log.Fatal(server.ListenAndServe()) }()
 
 	<-quit
